@@ -43,10 +43,20 @@ COPY wp-config.php /var/www/wpbloat
 RUN chown www-data: /var/www/wpbloat/wp-config.php
 RUN chmod 0644 /var/www/wpbloat/wp-config.php
 
+# Start MySQL
+#RUN service mariadb start && mysql -uroot -e "CREATE DATABASE wpdb; GRANT ALL PRIVILEGES ON wpdb.* TO 'wpuser'@'localhost' IDENTIFIED BY 'passwd'; FLUSH PRIVILEGES" && service mariadb stop
+#ADD bind_0.cnf /etc/mysql/conf.d/bind_0.cnf
+
 # Copy and run startscript
-COPY docker-entrypoint.sh /
-RUN chmod 777 docker-entrypoint.sh
+#COPY docker-entrypoint.sh /
+#RUN chmod 777 docker-entrypoint.sh
+
+ADD init.sh /init.sh
+RUN chmod 755 /*.sh
+ENTRYPOINT ["/init.sh"]
 
 EXPOSE 80
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD mysqld_safe && service php8.1-fpm start && nginx -g "daemon off;"
+
+#ENTRYPOINT ["/docker-entrypoint.sh"]
